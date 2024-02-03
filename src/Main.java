@@ -1,12 +1,10 @@
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 import java.io.File;
 
 public class Main {
-    private static Random random = new Random();
-    private static Scanner scanner = new Scanner(System.in);
+    private static final Random random = new Random();
+    private static final Scanner scanner = new Scanner(System.in);
 
     // Загаданное слово
     private static String MYSTERIOUS_WORD;
@@ -15,39 +13,46 @@ public class Main {
     private static String MASKED_WORD;
 
     // Количество слов в словаре
-    private static int WORDS_COUNT = 51297;
+    private static final int WORDS_COUNT = 51297;
 
     // Количество ошибок
     private static int ERROR_COUNT = 0;
 
     // Максимальное число допустимых ошибок
-    private static int ERROR_MAX_COUNT = 6;
+    private static final int ERROR_MAX_COUNT = 6;
 
     // Список для хранения неверно введенных букв
-    private static ArrayList<String> WRONG_LETTERS = new ArrayList<>();
+    private static HashSet<String> WRONG_LETTERS = new HashSet<>() {
+    };
 
     public static void main(String[] args) {
         startGameOrExit();
+        System.out.println("Спасибо за игру!");
     }
 
     // Метод выбора начала игры или выхода
     public static void startGameOrExit() {
         String userChoice;
+        System.out.println("===========================================================");
+        System.out.println("|                      Игра Виселица                      |");
+        System.out.println("===========================================================");
         do {
-            System.out.println("Введите 'старт' чтобы начать игру или 'выход', чтобы выйти");
+            System.out.println("Введите 'старт' чтобы начать игру или 'выход', чтобы выйти:");
             userChoice = scanner.nextLine();
             if (userChoice.equals("старт")) {
                 gameLoop();
+            } else if (userChoice.equals("выход")) {
+                return;
             } else {
                 System.out.println("Некорректный ввод, попробуйте еще раз.");
             }
-        } while (!userChoice.equals("выход"));
+        } while (true);
     }
 
     // Основной цикл игры
     public static void gameLoop() {
         MYSTERIOUS_WORD = selectRandomWordFromDictionary();
-        createMaskedWord(MYSTERIOUS_WORD);
+        createMaskedWordWithOneHelpLetter(MYSTERIOUS_WORD);
         printGallows(ERROR_COUNT);
         do {
             System.out.println(MYSTERIOUS_WORD);// для отладки
@@ -83,8 +88,8 @@ public class Main {
         return MYSTERIOUS_WORD;
     }
 
-    // Метод создания замаскированного слова с 1 открытой буквой
-    public static void createMaskedWord(String mysteriousWord) {
+    // Метод создания замаскированного слова с 1 открытой буквой в качестве подсказки
+    public static void createMaskedWordWithOneHelpLetter(String mysteriousWord) {
         StringBuilder maskedWord = new StringBuilder(mysteriousWord);
         int numberOfLettersOfWord = mysteriousWord.length();
 
@@ -138,7 +143,9 @@ public class Main {
                 System.out.println("Введено больше одной буквы, попробуйте еще раз.");
             } else if (WRONG_LETTERS.contains(inputLetter)) {
                 System.out.println("Вы уже проверяли эту букву, она не подходит. Попробуйте еще раз.");
-            } else {
+            } else if (inputLetter.isEmpty() || inputLetter.equals(" ")) {
+                System.out.println("Вы не ввели букву, попробуйте еще раз.");
+            }else {
                 return inputLetter.toLowerCase();
             }
         } while (true);
