@@ -3,26 +3,26 @@ import java.util.*;
 import java.io.File;
 
 public class Main {
-    private static final Random random = new Random();
-    private static final Scanner scanner = new Scanner(System.in);
+    private static final Random RANDOM = new Random();
+    private static final Scanner SCANNER = new Scanner(System.in);
 
     // Загаданное слово
-    private static String MYSTERIOUS_WORD;
+    private static String mysteriousWord;
 
     // Замаскированное слово
-    private static String MASKED_WORD;
+    private static String maskedWord;
 
     // Количество слов в словаре
     private static final int WORDS_COUNT = 51297;
 
     // Количество ошибок
-    private static int ERROR_COUNT = 0;
+    private static int errorCount = 0;
 
     // Максимальное число допустимых ошибок
     private static final int ERROR_MAX_COUNT = 6;
 
     // Список для хранения неверно введенных букв
-    private static HashSet<String> WRONG_LETTERS = new HashSet<>() {
+    private static HashSet<Character> wrongLetters = new HashSet<>() {
     };
 
     public static void main(String[] args) {
@@ -38,7 +38,7 @@ public class Main {
         System.out.println("===========================================================");
         do {
             System.out.println("Введите 'старт' чтобы начать игру или 'выход', чтобы выйти:");
-            userChoice = scanner.nextLine();
+            userChoice = SCANNER.nextLine();
             if (userChoice.equals("старт")) {
                 gameLoop();
             } else if (userChoice.equals("выход")) {
@@ -51,45 +51,45 @@ public class Main {
 
     // Основной цикл игры
     public static void gameLoop() {
-        MYSTERIOUS_WORD = selectRandomWordFromDictionary();
-        createMaskedWordWithOneHelpLetter(MYSTERIOUS_WORD);
-        printGallows(ERROR_COUNT);
+        mysteriousWord = selectRandomWord();
+        createMaskedWord(mysteriousWord);
+        printGallows(errorCount);
         do {
-            System.out.println(MYSTERIOUS_WORD);// для отладки
+            System.out.println(mysteriousWord);// для отладки
             identifyUserInput(userInputLetter());
-        } while (ERROR_COUNT != ERROR_MAX_COUNT && !MASKED_WORD.equals(MYSTERIOUS_WORD));
+        } while (errorCount != ERROR_MAX_COUNT && !maskedWord.equals(mysteriousWord));
         checkGameState();
         clearInfo();
     }
 
     // Метод проверки победы или поражения
     public static void checkGameState() {
-        if (MASKED_WORD.equals(MYSTERIOUS_WORD)) {
+        if (maskedWord.equals(mysteriousWord)) {
             System.out.println("Поздравляем! Вы победили!");
         } else {
             System.out.println("К сожалению Вы проиграли.");
-            System.out.println("Загаданное слово: " + MYSTERIOUS_WORD);
+            System.out.println("Загаданное слово: " + mysteriousWord);
         }
     }
 
     // Метод выбора случайного слова из словаря
-    public static String selectRandomWordFromDictionary() {
+    public static String selectRandomWord() {
         try (Scanner fileScanner = new Scanner(new File("./Dictionary/dictionary.txt"))) {
             if (fileScanner.hasNextLine()) {
-                int wordLineID = random.nextInt(WORDS_COUNT);
+                int wordLineID = RANDOM.nextInt(WORDS_COUNT);
                 for (int i = 0; i < wordLineID; i++) {
                     fileScanner.nextLine();
                 }
-                MYSTERIOUS_WORD = fileScanner.nextLine().toLowerCase();
+                mysteriousWord = fileScanner.nextLine().toLowerCase();
             }
         } catch (IOException exception) {
             exception.printStackTrace(System.out);
         }
-        return MYSTERIOUS_WORD;
+        return mysteriousWord;
     }
 
     // Метод создания замаскированного слова с 1 открытой буквой в качестве подсказки
-    public static void createMaskedWordWithOneHelpLetter(String mysteriousWord) {
+    public static void createMaskedWord(String mysteriousWord) {
         StringBuilder maskedWord = new StringBuilder(mysteriousWord);
         int numberOfLettersOfWord = mysteriousWord.length();
 
@@ -100,19 +100,19 @@ public class Main {
         }
 
         // Выбирается случайным образом индекс буквы, после чего эта буква открывается в замаскированном слове
-        int helpLetterID = random.nextInt(numberOfLettersOfWord);
+        int helpLetterID = RANDOM.nextInt(numberOfLettersOfWord);
         ArrayList<Integer> indexesOfHelpLetters;
-        indexesOfHelpLetters = getIndexesOfEqualLetters(String.valueOf(MYSTERIOUS_WORD.charAt(helpLetterID)));
-        MASKED_WORD = maskedWord.toString().toLowerCase();
-        openLettersInMaskedWord(indexesOfHelpLetters);
+        indexesOfHelpLetters = getIndexesOfEqualLetters((Main.mysteriousWord.charAt(helpLetterID)));
+        Main.maskedWord = maskedWord.toString().toLowerCase();
+        openLetters(indexesOfHelpLetters);
     }
 
     // Метод возвращения индексов угаданных букв
-    public static ArrayList<Integer> getIndexesOfEqualLetters(String letter) {
+    public static ArrayList<Integer> getIndexesOfEqualLetters(Character letter) {
         ArrayList<Integer> lettersIndexes = new ArrayList<>();
         int index = -1;
         do {
-            index = MYSTERIOUS_WORD.indexOf(letter, index + 1);
+            index = mysteriousWord.indexOf(letter, index + 1);
             if (index != -1) {
                 lettersIndexes.add(index);
             }
@@ -121,143 +121,152 @@ public class Main {
     }
 
     // Метод открытия угаданных букв
-    public static void openLettersInMaskedWord(ArrayList<Integer> letterIndexes) {
-        StringBuilder maskedWord = new StringBuilder(MASKED_WORD);
+    public static void openLetters(ArrayList<Integer> letterIndexes) {
+        StringBuilder maskedWord = new StringBuilder(Main.maskedWord);
         for (int index : letterIndexes) {
-            if (MASKED_WORD.charAt(index) != MYSTERIOUS_WORD.charAt(index)) {
-                maskedWord.setCharAt(index, MYSTERIOUS_WORD.charAt(index));
+            if (Main.maskedWord.charAt(index) != mysteriousWord.charAt(index)) {
+                maskedWord.setCharAt(index, mysteriousWord.charAt(index));
             }
-            MASKED_WORD = maskedWord.toString();
+            Main.maskedWord = maskedWord.toString();
         }
     }
 
     // Пользовательский ввод буквы
-    public static String userInputLetter() {
-        System.out.println(MASKED_WORD);
+    public static Character userInputLetter() {
+        System.out.println(maskedWord);
         System.out.println("Введите предполагаемую букву: ");
         do {
-            String inputLetter = scanner.nextLine().toLowerCase();
-            if (isLetterIsAlreadyOpen(inputLetter)) {
+            String inputLetter = SCANNER.nextLine().toLowerCase();
+            if (inputLetter.isEmpty()) {
+                System.out.println("Вы ничего не ввели, попробуйте еще раз.");
+            }
+            else if (isLetterIsAlreadyOpen(inputLetter.charAt(0))) {
                 System.out.println("Эта буква уже открыта, попробуйте еще раз.");
-            } else if (inputLetter.length() > 1) {
-                System.out.println("Введено больше одной буквы, попробуйте еще раз.");
-            } else if (WRONG_LETTERS.contains(inputLetter)) {
+            } else if (wrongLetters.contains(inputLetter.charAt(0))) {
                 System.out.println("Вы уже проверяли эту букву, она не подходит. Попробуйте еще раз.");
-            } else if (inputLetter.isEmpty() || inputLetter.equals(" ")) {
-                System.out.println("Вы не ввели букву, попробуйте еще раз.");
-            }else {
-                return inputLetter.toLowerCase();
+            } else {
+                return inputLetter.charAt(0);
             }
         } while (true);
     }
 
     // Метод проверки, что указанная буква уже открыта
-    public static boolean isLetterIsAlreadyOpen(String letter) {
-        return MASKED_WORD.contains(letter);
+    public static boolean isLetterIsAlreadyOpen(Character letter) {
+        return maskedWord.contains(letter.toString());
     }
 
     // Метод обработки пользовательского ввода
-    public static void identifyUserInput(String letter) {
+    public static void identifyUserInput(Character letter) {
         if (isLetterInWord(letter)) {
-            openLettersInMaskedWord(getIndexesOfEqualLetters(letter));
+            openLetters(getIndexesOfEqualLetters(letter));
         } else {
-            ERROR_COUNT++;
-            WRONG_LETTERS.add(letter);
-            System.out.println("Этой буквы в слове нет. У вас осталось попыток: " + (ERROR_MAX_COUNT - ERROR_COUNT));
-            printGallows(ERROR_COUNT);
+            errorCount++;
+            wrongLetters.add(letter);
+            System.out.println("Этой буквы в слове нет. У вас осталось попыток: " + (ERROR_MAX_COUNT - errorCount));
+            printGallows(errorCount);
         }
     }
 
     // Метод проверки наличия буквы в слове
-    public static boolean isLetterInWord(String letter) {
-        return MYSTERIOUS_WORD.contains(letter);
+    public static boolean isLetterInWord(Character letter) {
+        return mysteriousWord.contains(letter.toString());
     }
 
     // Метод для отрисовки виселицы
-    public static void printGallows(int ERROR_COUNT) {
-        if (ERROR_COUNT == 0) {
-            System.out.println("    " + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + "\n" +
-                    "   " + (char) 124 + (char) 47 + "      " + (char) 33 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    (char) 95 + (char) 95 + (char) 95 + (char) 124 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95);
-        } else if (ERROR_COUNT == 1) {
-            System.out.println("    " + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + "\n" +
-                    "   " + (char) 124 + (char) 47 + "      " + (char) 33 + "\n" +
-                    "   " + (char) 124 + "      " + "(_)" + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    (char) 95 + (char) 95 + (char) 95 + (char) 124 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95);
-        } else if (ERROR_COUNT == 2) {
-            System.out.println("    " + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + "\n" +
-                    "   " + (char) 124 + (char) 47 + "      " + (char) 33 + "\n" +
-                    "   " + (char) 124 + "      " + "(_)" + "\n" +
-                    "   " + (char) 124 + "       " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "       " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "       " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    (char) 95 + (char) 95 + (char) 95 + (char) 124 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95);
-        } else if (ERROR_COUNT == 3) {
-            System.out.println("    " + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + "\n" +
-                    "   " + (char) 124 + (char) 47 + "      " + (char) 33 + "\n" +
-                    "   " + (char) 124 + "      " + "(_)" + "\n" +
-                    "   " + (char) 124 + "     " + (char) 45 + (char) 45 + (char) 124 + "\n" +
-                    "   " + (char) 124 + "    " + (char) 47 + "  " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "       " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    (char) 95 + (char) 95 + (char) 95 + (char) 124 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95);
-        } else if (ERROR_COUNT == 4) {
-            System.out.println("    " + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + "\n" +
-                    "   " + (char) 124 + (char) 47 + "      " + (char) 33 + "\n" +
-                    "   " + (char) 124 + "      " + "(_)" + "\n" +
-                    "   " + (char) 124 + "     " + (char) 45 + (char) 45 + (char) 124 + (char) 45 + (char) 45 + "\n" +
-                    "   " + (char) 124 + "    " + (char) 47 + "  " + (char) 124 + "  " + (char) 92 + "\n" +
-                    "   " + (char) 124 + "       " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    (char) 95 + (char) 95 + (char) 95 + (char) 124 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95);
-        } else if (ERROR_COUNT == 5) {
-            System.out.println("    " + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + "\n" +
-                    "   " + (char) 124 + (char) 47 + "      " + (char) 33 + "\n" +
-                    "   " + (char) 124 + "      " + "(_)" + "\n" +
-                    "   " + (char) 124 + "     " + (char) 45 + (char) 45 + (char) 124 + (char) 45 + (char) 45 + "\n" +
-                    "   " + (char) 124 + "    " + (char) 47 + "  " + (char) 124 + "  " + (char) 92 + "\n" +
-                    "   " + (char) 124 + "       " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "      " + (char) 47 + "\n" +
-                    "   " + (char) 124 + "     " + (char) 47 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    (char) 95 + (char) 95 + (char) 95 + (char) 124 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95);
-        } else if (ERROR_COUNT == 6) {
-            System.out.println("    " + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + "\n" +
-                    "   " + (char) 124 + (char) 47 + "      " + (char) 33 + "\n" +
-                    "   " + (char) 124 + "      " + "(_)" + "\n" +
-                    "   " + (char) 124 + "     " + (char) 45 + (char) 45 + (char) 124 + (char) 45 + (char) 45 + "\n" +
-                    "   " + (char) 124 + "    " + (char) 47 + "  " + (char) 124 + "  " + (char) 92 + "\n" +
-                    "   " + (char) 124 + "       " + (char) 124 + "\n" +
-                    "   " + (char) 124 + "      " + (char) 47 + " " + (char) 92 + "\n" +
-                    "   " + (char) 124 + "     " + (char) 47 + "   " + (char) 92 + "\n" +
-                    "   " + (char) 124 + "\n" +
-                    (char) 95 + (char) 95 + (char) 95 + (char) 124 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95 + (char) 95);
+    public static void printGallows(int errorCount) {
+        switch (errorCount) {
+            case 0 -> System.out.println("""
+                      ________
+                      |/     !
+                      |
+                      |
+                      |
+                      |
+                      |
+                      |
+                    --|---------
+                    """);
+
+            case 1 -> System.out.println("""
+                      ________
+                      |/     !
+                      |     (_)
+                      |
+                      |
+                      |
+                      |
+                      |
+                      |
+                    --|---------
+                    """);
+
+            case 2 -> System.out.println("""
+                      ________
+                      |/     !
+                      |     (_)
+                      |      |
+                      |      |
+                      |      |
+                      |
+                      |
+                      |
+                    --|---------
+                    """);
+
+            case 3 -> System.out.println("""
+                      ________
+                      |/     !
+                      |     (_)
+                      |    --|
+                      |   /  |
+                      |      |
+                      |
+                      |
+                      |
+                    --|---------
+                    """);
+            case 4 -> System.out.println("""
+                      ________
+                      |/     !
+                      |     (_)
+                      |    --|--
+                      |   /  |  |
+                      |      |
+                      |
+                      |
+                      |
+                    --|---------
+                    """);
+            case 5 -> System.out.println("""
+                      ________
+                      |/     !
+                      |     (_)
+                      |    --|--
+                      |   /  |  |
+                      |      |
+                      |     /
+                      |    /
+                      |
+                    --|---------
+                    """);
+            case 6 -> System.out.println("""
+                      ________
+                      |/     !
+                      |     (_)
+                      |    --|--
+                      |   /  |  |
+                      |      |
+                      |     / |
+                      |    /  |
+                      |
+                    --|---------
+                    """);
         }
     }
 
     // Метод обнуления данных для новой игры
     private static void clearInfo() {
-        ERROR_COUNT = 0;
-        WRONG_LETTERS.clear();
+        errorCount = 0;
+        wrongLetters.clear();
     }
 }
